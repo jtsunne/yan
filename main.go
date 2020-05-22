@@ -30,7 +30,7 @@ type Config struct {
 	Hosts map[string]Host
 }
 
-func executeCmd(command string, hostKey string, host Host, config *ssh.ClientConfig) string {
+func executeCmd(command, keyTask, hostKey string, host Host, config *ssh.ClientConfig) string {
 	conn, _ := ssh.Dial("tcp", fmt.Sprintf("%s:%s", host.Hostname, host.Port), config)
 	session, _ := conn.NewSession()
 	defer session.Close()
@@ -39,7 +39,7 @@ func executeCmd(command string, hostKey string, host Host, config *ssh.ClientCon
 	session.Stdout = &stdoutBuf
 	session.Run(command)
 
-	return fmt.Sprintf("%s -> %s", hostKey, strings.TrimSpace(stdoutBuf.String()))
+	return fmt.Sprintf("%s -> %s -> %s", hostKey, keyTask, strings.TrimSpace(stdoutBuf.String()))
 }
 
 func main() {
@@ -81,7 +81,7 @@ func main() {
 			}
 			for keyTask, task := range host.Tasks {
 				log.Println(keyHost, keyTask)
-				results <- executeCmd(task.Value, keyHost, host2, config)
+				results <- executeCmd(task.Value, keyTask, keyHost, host2, config)
 			}
 		}(host)
 	}
