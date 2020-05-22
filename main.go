@@ -14,24 +14,12 @@ import (
 	"time"
 )
 
-type Host struct {
-	Hostname string
-	Port     string
-	Username string
-	Tasks    map[string]Task
-}
-
-type Task struct {
-	Type  string
-	Value string
-}
-
-type Config struct {
-	Hosts map[string]Host
-}
-
 func executeCmd(command, keyTask, hostKey string, host Host, config *ssh.ClientConfig) string {
-	conn, _ := ssh.Dial("tcp", fmt.Sprintf("%s:%s", host.Hostname, host.Port), config)
+	port := "22"
+	if host.Port != "" {
+		port = host.Port
+	}
+	conn, _ := ssh.Dial("tcp", fmt.Sprintf("%s:%s", host.Hostname, port), config)
 	session, _ := conn.NewSession()
 	defer session.Close()
 
@@ -74,8 +62,12 @@ func main() {
 		host := host
 		keyHost := keyHost
 		go func(host2 Host) {
+			userName := "root"
+			if host2.Username != "" {
+				userName = host2.Username
+			}
 			config := &ssh.ClientConfig{
-				User:            host2.Username,
+				User:            userName,
 				Auth:            []ssh.AuthMethod{ssh.PublicKeysCallback(agentClient.Signers)},
 				HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 			}
