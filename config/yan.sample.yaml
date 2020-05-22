@@ -1,0 +1,15 @@
+hosts:
+  first:
+    hostname: "hostname.domain.ext"
+    port: 22
+    username: "ubuntu"
+    tasks:
+      check-uptime:
+        type: ssh-cmd
+        value: "uptime"
+  second:
+    hostname: "AAA.BBB.CCC.DDD"
+    tasks:
+      check-uptime:
+        type: ssh-cmd
+        value: "uptime"
