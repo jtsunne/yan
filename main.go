@@ -12,9 +12,10 @@ import (
 	"os"
 	"strings"
 	"time"
+	"yan/config"
 )
 
-func executeCmd(command, keyTask, hostKey string, host Host, config *ssh.ClientConfig) string {
+func executeCmd(command, keyTask, hostKey string, host config.Host, config *ssh.ClientConfig) string {
 	port := "22"
 	if host.Port != "" {
 		port = host.Port
@@ -31,7 +32,7 @@ func executeCmd(command, keyTask, hostKey string, host Host, config *ssh.ClientC
 }
 
 func main() {
-	var yamConfig Config
+	var yamConfig config.Config
 	configFileName := os.Getenv("YAN_CONFIG")
 	if configFileName == "" {
 		configFileName = "config/yan.yaml"
@@ -61,19 +62,19 @@ func main() {
 	for keyHost, host := range yamConfig.Hosts {
 		host := host
 		keyHost := keyHost
-		go func(host2 Host) {
+		go func(host2 config.Host) {
 			userName := "root"
 			if host2.Username != "" {
 				userName = host2.Username
 			}
-			config := &ssh.ClientConfig{
+			c := &ssh.ClientConfig{
 				User:            userName,
 				Auth:            []ssh.AuthMethod{ssh.PublicKeysCallback(agentClient.Signers)},
 				HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 			}
 			for keyTask, task := range host.Tasks {
 				log.Println(keyHost, keyTask)
-				results <- executeCmd(task.Value, keyTask, keyHost, host2, config)
+				results <- executeCmd(task.Value, keyTask, keyHost, host2, c)
 			}
 		}(host)
 	}
